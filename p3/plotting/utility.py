@@ -1,7 +1,9 @@
+from itertools import product
 import plotly.graph_objects as go
 import plotly.express as px
 from plotly.subplots import make_subplots
 from plotly.colors import hex_to_rgb as hex_to_rgb_plotly
+import numpy as np
 
 def add_kilo(x, precision):
     if abs(x) > 1000:
@@ -57,36 +59,11 @@ def find_factors(N):
             y = N // i
     return x, y
 
+# Returns two lists corresponding to all row-column
+# pairs in the figure
 def get_subplot_rows_cols(fig):
-    """Retrieve rows and columns paired up for subplots in a given Plotly figure.
-
-    Args:
-    - fig (go.Figure): A Plotly figure object created using make_subplots.
-
-    Returns:
-    - list: List of subplot row indices.
-    - list: List of subplot column indices.
-    """
-    if not isinstance(fig, go.Figure):
-        raise ValueError("Expected a Plotly Figure object.")
-    
-    # Check if subplot annotations exist
-    if '_subplot_titles' not in dir(fig) or not hasattr(fig, 'layout'):
-        raise ValueError("Figure does not appear to be created using make_subplots.")
-    
-    subplot_titles = fig._subplot_titles
-    if not subplot_titles:
-        return [], []
-
-    rows, cols = [], []
-    for title in subplot_titles:
-        if title:
-            # Extracting row and col info from subplot title, which are typically in the format 'x,y'
-            r, c = map(int, title.split(','))
-            rows.append(r)
-            cols.append(c)
-
-    return rows, cols
+    row_cols = np.array(list(product(*fig._get_subplot_rows_columns())))
+    return row_cols[:, 0], row_cols[:, 1]
 
 # Example usage:
 # fig = make_subplots(rows=2, cols=2)
