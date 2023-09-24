@@ -35,3 +35,38 @@ def resample_df(df, time_col, dt, n_samples=None):
     new_df = new_df.reset_index(drop=True)
 
     return new_df
+
+def create_buffered_range(_min, _max, buffer: float = 0.05):
+    """
+    Creates a range with a buffer on either side.
+
+    Parameters:
+    - _min: float, minimum value
+    - _max: float, maximum value
+    - buffer: float, buffer on either side of the range
+
+    Returns:
+    - range: list, range with buffer
+    """
+
+    # Calculate buffer
+    buffer = (_max - _min) * buffer
+
+    # Create range
+    return [_min - buffer, _max + buffer]
+
+def create_buffered_range_df(df, var, buffer: float = 0.05):
+    """
+    Creates a range with a buffer on either side for a given variable in a DataFrame.
+
+    Parameters:
+    - df: pandas DataFrame
+    - var: str, name of the variable
+    - buffer: float, buffer on either side of the range
+
+    Returns:
+    - range: list, range with buffer
+    """
+
+    # Create range
+    return create_buffered_range(df[var].min(), df[var].max(), buffer=buffer)

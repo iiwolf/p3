@@ -14,6 +14,12 @@ class TestPlotTrajectory(UnitTest):
         fig = plot_on_flat_plane(df)
         fig.show()
 
+    def test_plot_on_flat_plane_animated(self):
+        from p3.plotting.plot_2d import plot_on_flat_plane
+        df = pd.read_csv(self.sample_trajectory_data)
+        fig = plot_on_flat_plane(df, animate=True)
+        fig.show()
+
     def test_plot_flight_state_multi_y(self):
         from p3.plotting.plot_2d import plot_flight_state_multi_y
         df = pd.read_csv(self.sample_trajectory_data)

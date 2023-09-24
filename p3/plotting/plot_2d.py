@@ -4,7 +4,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
 # P3
-from p3.core.utility import resample_df
+from p3.core.utility import resample_df, create_buffered_range_df
 from p3.plotting.utility import (
     create_specs,
     create_subplots,
@@ -34,6 +34,7 @@ def _plot_on_flat_plane_multi(dfs, fig=None):
 def _plot_on_flat_plane(
         df, 
         line_color: str = get_plotly_colors()['cyan'],
+        animate: bool = False,
         fig=None, 
         row=1,
         col=1,
@@ -68,10 +69,13 @@ def _plot_on_flat_plane(
         row=row,
         col=col,
     )
+
+    if animate:
+        fig = animate_trajectory(df, 'x', 'y', fig=fig, row=row, col=col, line_color=line_color, **kwargs)
+
     fig.update_layout(
         showlegend=False,
         template='plotly_dark',
-        hovermode='x unified'
     )
     return fig
 
@@ -251,7 +255,12 @@ def animate_trajectory(
             x=[df[x_var].iloc[0]],
             y=[df[y_var].iloc[0]],
             mode='markers',
-            line_color=line_color,
+            marker=dict(
+                size=10,
+                color='black',
+                line_color=line_color,
+                line_width=2.0,
+            )
         ), row=row, col=col
     )
 
@@ -261,6 +270,9 @@ def animate_trajectory(
                     x=[df['x'].iloc[i]],
                     y=[df['y'].iloc[i]],
                     mode='markers')],
+
+                # Note: important! Tells Ploty to **only** animate the trace we just made
+                traces=[len(fig.data) - 1],
                 name=str(i)
             ) for i in range(len(df))]
 
@@ -318,6 +330,6 @@ def animate_trajectory(
         }],
         template='plotly_dark'
     )
-    fig.update_xaxes(range=[df['x'].min() * 0.95, df['x'].max()*1.05], autorange=False)
-    fig.update_yaxes(range=[df['y'].min() * 0.95, df['y'].max()*1.05], autorange=False)
+    fig.update_xaxes(range=create_buffered_range_df(df, 'x', 0.05), autorange=False)
+    fig.update_yaxes(range=create_buffered_range_df(df, 'y', 0.05), autorange=False)
     return fig
