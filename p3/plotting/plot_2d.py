@@ -213,3 +213,115 @@ def plot_flight_state_multi_y(state, view: str = 'flight', font_size: int = 18):
     )
 
     return fig
+
+## Helper functions ##
+# Function to add trajectory animation to existing figure
+def add_trajectory_animation(
+        fig,
+        df,
+        x_var,
+        y_var,
+        row=1,
+        col=1,
+        **kwargs
+    ):
+
+
+    # Animation
+
+    return fig
+
+
+
+def animate_trajectory(
+        df,
+        x_var,
+        y_var,
+        fig: go.Figure = None,
+        row=1,
+        col=1,
+        line_color: str = get_plotly_colors()['cyan'],
+        **kwargs
+    ):
+    """
+    Visualizes a trajectory from a DataFrame with x and y columns and animates it using Plotly's slider.
+
+    Parameters:
+        df (pd.DataFrame): DataFrame containing x and y columns.
+    """
+
+    # Create figure if not provided
+    fig = fig or make_subplots()
+    
+    # Dummy trace (i.e. the trace to be animated)
+    fig.add_trace(
+        go.Scatter(
+            x=[df[x_var].iloc[0]],
+            y=[df[y_var].iloc[0]],
+            mode='markers',
+            line_color=line_color,
+        ), row=row, col=col
+    )
+
+    # Create data for each frame (i.e., each step in the trajectory)
+    frames = [go.Frame(
+                data=[go.Scatter(
+                    x=df['x'][:i+1],
+                    y=df['y'][:i+1],
+                    mode='markers')],
+                name=str(i)
+            ) for i in range(len(df))]
+
+    fig.frames = frames
+
+    # Create the figure with an initial frame and the frames for animation
+    transition_time = df['t'].iloc[-1] / len(df) * 1000
+    speed = 1
+    fig.update_layout(
+        updatemenus=[{
+            'buttons': [
+                {
+                    'args': [None, {'frame': {'duration': transition_time / speed, 'redraw': False}, 'fromcurrent': True}],
+                    'label': 'Play',
+                    'method': 'animate'
+                },
+                {
+                    'args': [[None], {'frame': {'duration': 0, 'redraw': False}, 'mode': 'immediate', 'transition': {'duration': 0}}],
+                    'label': 'Pause',
+                    'method': 'animate'
+                }
+            ],
+            'direction': 'left',
+            'pad': {'r': 10, 't': 87},
+            'showactive': False,
+            'type': 'buttons',
+            'x': 0.1,
+            'xanchor': 'right',
+            'y': 0,
+            'yanchor': 'top'
+        }],
+        sliders=[{
+            'active': 0,
+            'yanchor': 'top',
+            'xanchor': 'left',
+            'currentvalue': {
+                'font': {'size': 20},
+                'prefix': 'Step:',
+                'visible': True,
+                'xanchor': 'right'
+            },
+            'transition': {'duration': 0, 'easing': 'linear'},
+            'pad': {'b': 10, 't': 50},
+            'len': 0.9,
+            'x': 0.1,
+            'y': 0,
+            'steps': [{'args': [[f.name], {'frame': {'duration': 0, 'redraw': False}, 'mode': 'immediate',
+                                        'transition': {'duration': 0}}],
+                        'label': str(k),
+                        'method': 'animate'} for k, f in enumerate(frames)]
+        }],
+        template='plotly_dark'
+    )
+    fig.update_xaxes(range=[df['x'].min() * 0.95, df['x'].max()*1.05], autorange=False)
+    fig.update_yaxes(range=[df['y'].min() * 0.95, df['y'].max()*1.05], autorange=False)
+    fig.show()

@@ -21,19 +21,7 @@ class TestPlotTrajectory(UnitTest):
         fig.show()
 
     def test_trajectory_animation(self):
-        import plotly.express as px
-
-        df = pd.read_csv(self.sample_trajectory_data).iloc[::10]
-
-        # Create animation
-        fig = px.scatter(
-            df,
-            x='x',
-            y='y',
-            animation_frame=df.index,
-            range_x=[min(df['x']) - 1, max(df['x']) + 1], 
-            range_y=[min(df['y']) - 1, max(df['y']) + 1]
-        )
-
-        # Show figure
+        from p3.plotting.plot_2d import animate_trajectory
+        df = pd.read_csv(self.sample_trajectory_data)
+        fig = animate_trajectory(df, 'x', 'y')
         fig.show()
