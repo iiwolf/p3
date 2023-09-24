@@ -2,6 +2,9 @@ import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+
+# P3
+from p3.core.utility import resample_df
 from p3.plotting.utility import (
     create_specs,
     create_subplots,
@@ -214,29 +217,14 @@ def plot_flight_state_multi_y(state, view: str = 'flight', font_size: int = 18):
 
     return fig
 
-## Helper functions ##
-# Function to add trajectory animation to existing figure
-def add_trajectory_animation(
-        fig,
-        df,
-        x_var,
-        y_var,
-        row=1,
-        col=1,
-        **kwargs
-    ):
-
-
-    # Animation
-
-    return fig
-
-
-
 def animate_trajectory(
         df,
         x_var,
         y_var,
+        speeds = [1, 2, 4, 8],
+        allow_resample: bool = True,
+        resample_dt: float = 0.1,
+        n_samples: int = 100,
         fig: go.Figure = None,
         row=1,
         col=1,
@@ -249,6 +237,10 @@ def animate_trajectory(
     Parameters:
         df (pd.DataFrame): DataFrame containing x and y columns.
     """
+
+    # Resample the data if necessary
+    if allow_resample:
+        df = resample_df(df, 't', resample_dt, n_samples=n_samples)
 
     # Create figure if not provided
     fig = fig or make_subplots()
@@ -266,8 +258,8 @@ def animate_trajectory(
     # Create data for each frame (i.e., each step in the trajectory)
     frames = [go.Frame(
                 data=[go.Scatter(
-                    x=df['x'][:i+1],
-                    y=df['y'][:i+1],
+                    x=[df['x'].iloc[i]],
+                    y=[df['y'].iloc[i]],
                     mode='markers')],
                 name=str(i)
             ) for i in range(len(df))]
@@ -276,15 +268,19 @@ def animate_trajectory(
 
     # Create the figure with an initial frame and the frames for animation
     transition_time = df['t'].iloc[-1] / len(df) * 1000
-    speed = 1
     fig.update_layout(
         updatemenus=[{
             'buttons': [
                 {
-                    'args': [None, {'frame': {'duration': transition_time / speed, 'redraw': False}, 'fromcurrent': True}],
-                    'label': 'Play',
+                    'args': [None, {
+                        'frame': {'duration': transition_time / speed, 'redraw': False}, 
+                        'transition' : {'duration' : transition_time / speed, 'easing': 'linear'}, 
+                        'fromcurrent': True
+                        }],
+                    'label': f'{speed}x',
                     'method': 'animate'
-                },
+                } for speed in speeds
+            ] + [
                 {
                     'args': [[None], {'frame': {'duration': 0, 'redraw': False}, 'mode': 'immediate', 'transition': {'duration': 0}}],
                     'label': 'Pause',
@@ -324,4 +320,4 @@ def animate_trajectory(
     )
     fig.update_xaxes(range=[df['x'].min() * 0.95, df['x'].max()*1.05], autorange=False)
     fig.update_yaxes(range=[df['y'].min() * 0.95, df['y'].max()*1.05], autorange=False)
-    fig.show()
+    return fig

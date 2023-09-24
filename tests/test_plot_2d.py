@@ -23,5 +23,6 @@ class TestPlotTrajectory(UnitTest):
     def test_trajectory_animation(self):
         from p3.plotting.plot_2d import animate_trajectory
         df = pd.read_csv(self.sample_trajectory_data)
+        # df = df[df['t'] < 20]
         fig = animate_trajectory(df, 'x', 'y')
         fig.show()
