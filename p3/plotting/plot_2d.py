@@ -273,7 +273,7 @@ def animate_trajectory(
 
                 # Note: important! Tells Ploty to **only** animate the trace we just made
                 traces=[len(fig.data) - 1],
-                name=str(i)
+                name=f"{df['t'].iloc[i]:.2f} s"
             ) for i in range(len(df))]
 
     fig.frames = frames
@@ -314,7 +314,7 @@ def animate_trajectory(
             'xanchor': 'left',
             'currentvalue': {
                 'font': {'size': 20},
-                'prefix': 'Step:',
+                'prefix': 't = ',
                 'visible': True,
                 'xanchor': 'right'
             },
@@ -325,7 +325,7 @@ def animate_trajectory(
             'y': 0,
             'steps': [{'args': [[f.name], {'frame': {'duration': 0, 'redraw': False}, 'mode': 'immediate',
                                         'transition': {'duration': 0}}],
-                        'label': str(k),
+                        'label': f.name,
                         'method': 'animate'} for k, f in enumerate(frames)]
         }],
         template='plotly_dark'
