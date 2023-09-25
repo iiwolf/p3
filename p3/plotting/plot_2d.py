@@ -18,6 +18,8 @@ from p3.plotting.utility import (
 # Simple Physics
 from simple_physics.definitions import get_display_str, get_hover_str
 
+DEFAULT_LINE_COLOR = get_plotly_colors()['cyan']
+    
 def plot_on_flat_plane(data, **kwargs):
 
     if isinstance(data, list):
@@ -25,15 +27,15 @@ def plot_on_flat_plane(data, **kwargs):
     elif isinstance(data, pd.DataFrame):
         return _plot_on_flat_plane(data, **kwargs)
     
-def _plot_on_flat_plane_multi(dfs, fig=None):
+def _plot_on_flat_plane_multi(dfs, fig=None, **kwargs):
     colors = get_colors(len(dfs))
     for df in dfs:
-        fig = _plot_on_flat_plane(df, fig=fig, line_color=next(colors))
+        fig = _plot_on_flat_plane(df, fig=fig, line_color=next(colors), **kwargs)
     return fig
 
 def _plot_on_flat_plane(
         df, 
-        line_color: str = get_plotly_colors()['cyan'],
+        line_color: str = DEFAULT_LINE_COLOR,
         animate: bool = False,
         fig=None, 
         row=1,
@@ -95,7 +97,7 @@ def _plot_flight_state_multi(dfs, vars_to_plot, fig=None):
 def _plot_flight_state(
         df, 
         vars_to_plot,
-        line_color: str = get_plotly_colors()['cyan'],
+        line_color: str = DEFAULT_LINE_COLOR,
         fig = None,
         rows = None,
         cols = None,
@@ -232,7 +234,7 @@ def animate_trajectory(
         fig: go.Figure = None,
         row=1,
         col=1,
-        line_color: str = get_plotly_colors()['cyan'],
+        line_color: str = DEFAULT_LINE_COLOR,
         **kwargs
     ):
     """

@@ -1,5 +1,11 @@
 import numpy as np
 import pandas as pd
+from pint import UnitRegistry
+ureg = UnitRegistry()
+
+def convert(conversion_string: str):
+    unit_from, unit_to = conversion_string.split(" to ")
+    return ureg(unit_from).to(unit_to).magnitude
 
 def resample_df(df, time_col, dt, n_samples=None):
     """

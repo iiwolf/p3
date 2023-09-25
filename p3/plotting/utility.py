@@ -105,7 +105,7 @@ def get_colors(n: int, return_as=iter):
     """
 
     if n == 1:
-        return return_as(px.colors.qualitative.Plotly[0])
+        return return_as(px.colors.qualitative.Plotly[:1])
     elif n < 10:
         return return_as(px.colors.qualitative.Plotly[:n])
     elif n < 24:
