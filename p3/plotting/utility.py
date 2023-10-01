@@ -247,6 +247,8 @@ def _add_expanding_slider(fig, num_points_per_step=10):
 
     return fig
 
+DEFAULT_LINE_COLOR = get_plotly_colors()['cyan']
+
 def _add_point_slider(fig, num_points_per_step=1, line_color=DEFAULT_LINE_COLOR, row=1, col=1):
     """
     Add a slider to a Plotly scatter plot to place a dot at specified points.
@@ -261,35 +263,44 @@ def _add_point_slider(fig, num_points_per_step=1, line_color=DEFAULT_LINE_COLOR,
     steps = []
     max_steps = max([len(fig.data[trace_index]['x']) for trace_index in range(len(fig.data))])
     n_traces = len(fig.data)
-                            
-    # Extract data
-    x_values = fig.data[0]['x']
-    y_values = fig.data[0]['y']
-    
-    # Ensure the base line remains and add a scatter dot trace
-    fig.add_trace(
-        go.Scatter(
-            x=[x_values[0]],
-            y=[y_values[0]],
-            mode='markers',
-            marker=dict(
-                size=10,
-                color='black',
-                line_color=line_color,
-                line_width=2.0,
-            )
+    rows, cols = get_subplot_rows_cols(fig)
+    all_x_vals = []
+    all_y_vals = []
+    traces = []
+    for i, (row, col) in enumerate(zip(rows, cols)):
+            
+        # Extract data
+        x_values = fig.data[i]['x']
+        y_values = fig.data[i]['y']
+        
+        all_x_vals.append(x_values)
+        all_y_vals.append(y_values)
+
+        # Ensure the base line remains and add a scatter dot trace
+        fig.add_trace(
+            go.Scatter(
+                x=[x_values[0]],
+                y=[y_values[0]],
+                mode='markers',
+                marker=dict(
+                    size=10,
+                    color='black',
+                    line_color=line_color,
+                    line_width=2.0,
+                )
+            ), row=row, col=col
         )
-    )
+        traces.append(len(fig.data) - 1)
+
     for i in range(0, max_steps, num_points_per_step):
         
         update_args = [{
-            f'x': [[x_values[i]]],  # The x-value of the dot
-            f'y': [[y_values[i]]],  # The y-value of the dot
-        }, [len(fig.data) - 1]]
+            f'x': [[_x_values[i]] for _x_values in all_x_vals],  # The x-value of the dot
+            f'y': [[_y_values[i]] for _y_values in all_y_vals],  # The y-value of the dot
+        }, traces]
 
         step = {
             'args': update_args,  # Indicates we're updating the second trace (scatter dot) 
-            'label': str(i),
             'method': 'restyle'
         }
         steps.append(step)

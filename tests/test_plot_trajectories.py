@@ -35,7 +35,8 @@ class TestPlotTrajectory(UnitTest):
         fig.show()
 
     def test_plot_flight_state_w_point_slider(self):
-        from p3.plotting.plot_trajectories import plot_flight_state, _add_point_slider
+        from p3.plotting.plot_trajectories import plot_flight_state
+        from p3.plotting.utility import _add_point_slider
         df = pd.read_csv(self.sample_trajectory_data)
         fig = plot_flight_state(df, df.columns.difference(['t']))
         fig = _add_point_slider(fig)
