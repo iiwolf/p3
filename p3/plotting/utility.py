@@ -65,33 +65,59 @@ def get_subplot_rows_cols(fig):
     row_cols = np.array(list(product(*fig._get_subplot_rows_columns())))
     return row_cols[:, 0], row_cols[:, 1]
 
-# Example usage:
-# fig = make_subplots(rows=2, cols=2)
-# rows, cols = get_subplot_rows_cols(fig)
-# print(rows, cols)
 
-def create_subplots(N, **kwargs):
-    # For N <= 2, it's just one row
-    if N <= 2:
-        rows, cols = 1, N
-    # For N = 3, it's a row of three
-    elif N == 3:
-        rows, cols = 1, 3
+def get_square_subplot_shape(N):
+    base = int(N**0.5)
+    if base * base == N:
+        return base, base
+    for cols in range(base + 1, N + 1):
+        rows, remainder = divmod(N, cols)
+        if rows >= remainder:
+            return rows, cols
+    return N, 1
+
+
+def get_subplot_shape(N, reserve_top_left=False):
+    if reserve_top_left:
+        # Find shape for N + 4 (2x2 reserved)
+        rows, cols = get_square_subplot_shape(N + 4)
     else:
-        rows, cols = find_factors(N)
-        
-        # In case the number is prime or the layout could be improved
-        if rows == 1:
-            cols = (N // 2) + (N % 2)
-            rows = 2
+        rows, cols = get_square_subplot_shape(N)
+    return rows, cols
+
+
+def create_subplots(N, reserve_top_left=False, **kwargs):
+    rows, cols = get_subplot_shape(N + 4, reserve_top_left)
+
+    # If reserved, initialize the specs
+    if reserve_top_left:
+        specs = []
+        for i in range(rows):
+            row = []
+            for j in range(cols):
+                if i == 0 and j == 0:  # This is the top-left subplot
+                    row.append({'type': 'xy', 'rowspan': 2, 'colspan': 2})
+                elif i < 2 and j < 2:  # This is one of the other 3 top-left subplots
+                    row.append(None)
+                else:
+                    row.append({})
+            specs.append(row)
+
+        fig = make_subplots(rows=rows, cols=cols, specs=specs, **kwargs)
+    else:
+        fig = make_subplots(rows=rows, cols=cols, **kwargs)
     
-    fig = make_subplots(rows=rows, cols=cols, **kwargs)
-    
-    # Return expanded rows and cols
-    subplot_coords = [(i, j) for i in range(1, rows + 1) for j in range(1, cols + 1)][:N]
+    # If reserved, skip the top-left 2x2 cells
+    if reserve_top_left:
+        subplot_coords = [(i, j) for i in range(1, rows + 1) for j in range(1, cols + 1) 
+                          if not (i <= 2 and j <= 2)][:N]
+    else:
+        subplot_coords = [(i, j) for i in range(1, rows + 1) for j in range(1, cols + 1)][:N]
+
     rows_list, cols_list = zip(*subplot_coords)
     
     return fig, list(rows_list), list(cols_list)
+
 
 def get_colors(n: int, return_as=iter):
     """
@@ -169,3 +195,4 @@ def hex_to_rgb(hex_code, opacity=1.0):
     
     r, g, b = hex_to_rgb_plotly(hex_code)
     return f'rgba({r}, {g}, {b}, {opacity})'
+
