@@ -292,20 +292,14 @@ def _add_point_slider(fig, num_points_per_step=1, line_color=DEFAULT_LINE_COLOR,
         )
         traces.append(len(fig.data) - 1)
 
+    frames = []
     for i in range(0, max_steps, num_points_per_step):
-        
-        update_args = [{
-            f'x': [[_x_values[i]] for _x_values in all_x_vals],  # The x-value of the dot
-            f'y': [[_y_values[i]] for _y_values in all_y_vals],  # The y-value of the dot
-        }, traces]
+        frame_data = []
+        for x_values, y_values, trace_idx in zip(all_x_vals, all_y_vals, traces):
+            frame_data.append(go.Scatter(x=[x_values[i]], y=[y_values[i]], mode='markers'))
+        frames.append(go.Frame(data=frame_data, name=str(i), traces=traces))
 
-        step = {
-            'args': update_args,  # Indicates we're updating the second trace (scatter dot) 
-            'method': 'restyle'
-        }
-        steps.append(step)
-
-    # Create the slider
+    # Create the slider (existing code)
     slider = {
         'active': 0,
         'yanchor': 'top',
@@ -321,10 +315,37 @@ def _add_point_slider(fig, num_points_per_step=1, line_color=DEFAULT_LINE_COLOR,
         'len': 0.9,
         'x': 0.1,
         'y': 0,
-        'steps': steps
+        'steps': [{"args": [[f.name], {"frame": {"duration": 300, "redraw": True},
+                                      "mode": "immediate", "transition": {"duration": 300}}],
+                   "label": f.name, "method": "animate"} for f in frames]
     }
 
-    # Add the slider to the figure
-    fig.update_layout(sliders=[slider])
+    # Add play and pause buttons
+    play_button = {
+        'buttons': [{
+            'args': [None, {"frame": {"duration": 300, "redraw": True},
+                            "fromcurrent": True, "transition": {"duration": 300}}],
+            'label': 'Play',
+            'method': 'animate'
+        },
+        {
+            'args': [[None], {"frame": {"duration": 0, "redraw": False},
+                              "mode": "immediate", "transition": {"duration": 0}}],
+            'label': 'Pause',
+            'method': 'animate'
+        }],
+        'direction': 'left',
+        'pad': {'r': 10, 't': 87},
+        'showactive': False,
+        'type': 'buttons',
+        'x': 0.1,
+        'xanchor': 'right',
+        'y': 0,
+        'yanchor': 'top'
+    }
+
+    # Add the slider, frames, and the play button to the figure
+    fig.frames = frames
+    fig.update_layout(sliders=[slider], updatemenus=[play_button])
 
     return fig
