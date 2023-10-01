@@ -95,13 +95,13 @@ def _plot_flight_state_multi(dfs, vars_to_plot, fig=None):
     return fig
 
 def _plot_flight_state(
-        df, 
-        vars_to_plot,
-        line_color: str = DEFAULT_LINE_COLOR,
-        fig = None,
-        rows = None,
-        cols = None,
-    ):
+    df, 
+    vars_to_plot,
+    line_color: str = DEFAULT_LINE_COLOR,
+    fig = None,
+    rows = None,
+    cols = None,
+):
 
     if fig is None:
         fig, rows, cols = create_subplots(
@@ -147,81 +147,18 @@ def _plot_flight_state(
     fig = update_subplot_title_fontsize(fig, 12)
     return fig
 
-def plot_flight_state_multi_y(state, view: str = 'flight', font_size: int = 18):
-
-    if view == 'flight':
-        groupings = [
-            ['x', 'y'],
-            ['speed', 'mach'],
-            [['mass', 'fuel_mass']],
-            [['cl', 'cd'], ['lift', 'drag']],
-            ['alpha', 'gamma'],
-        ]
-    else:
-        groupings = [
-            ['x', 'y'],
-            ['vx', 'vy'],
-            ['mass', 'fuel_mass'],
-            ['alpha'],
-            ['lift', 'drag'],
-        ]
-
-    n_rows = len(groupings)
-    specs = create_specs(n_rows, 1, {'secondary_y' : True})
-    fig = make_subplots(rows=n_rows, cols=1, shared_xaxes=True, specs=specs)
-
-    # Add traces for all variables
-    for i, attrs in enumerate(groupings):
-
-        # Primary y axes
-        for attr in np.atleast_1d(attrs[0]):
-            fig.add_trace(
-                go.Scatter(
-                    x=state.t,
-                    y=getattr(state, attr),
-                    mode='lines',
-                    name=get_display_str(attr),
-                    hovertemplate=get_hover_str(attr)
-                ), row=i + 1, col=1
-            )
-            fig.update_yaxes(
-                title=dict(text=get_display_str(attr), font_size=font_size),
-                tickfont_size=font_size,
-                row=i + 1,
-                col=1
-            )
-        
-        # Secondary y axes
-        if len(attrs) > 1:
-            for attr in np.atleast_1d(attrs[1]):
-                fig.add_trace(
-                    go.Scatter(
-                        x=state.t,
-                        y=getattr(state, attr),
-                        mode='lines',
-                        name=get_display_str(attr),
-                        hovertemplate=get_hover_str(attr)
-                    ), row=i + 1, col=1, secondary_y=True
-                )
-                fig.update_yaxes(
-                    title=dict(text=get_display_str(attr), font_size=font_size),
-                    tickfont_size=font_size,
-                    row=i + 1,
-                    col=1,
-                    secondary_y=True,
-                    showgrid=False
-                )
-
-    fig.update_xaxes(title_text="Time (s)", row=n_rows, col=1)
-    fig.update_layout(
-        title_text="<b>Flight State vs Time</b>",
-        showlegend=True,
-        legend_font_size=font_size,
-        template='plotly_dark',
-        hovermode='x unified'
+def _create_point_scatter(df, x_var, y_var, line_color):
+    return go.Scatter(
+        x=[df[x_var].iloc[0]],
+        y=[df[y_var].iloc[0]],
+        mode='markers',
+        marker=dict(
+            size=10,
+            color='black',
+            line_color=line_color,
+            line_width=2.0,
+        )
     )
-
-    return fig
 
 def animate_trajectory(
         df,
@@ -252,19 +189,7 @@ def animate_trajectory(
     fig = fig or make_subplots()
     
     # Dummy trace (i.e. the trace to be animated)
-    fig.add_trace(
-        go.Scatter(
-            x=[df[x_var].iloc[0]],
-            y=[df[y_var].iloc[0]],
-            mode='markers',
-            marker=dict(
-                size=10,
-                color='black',
-                line_color=line_color,
-                line_width=2.0,
-            )
-        ), row=row, col=col
-    )
+    fig.add_trace(_create_point_scatter(df, x_var, y_var, line_color), row=row, col=col)
 
     # Create data for each frame (i.e., each step in the trajectory)
     frames = [go.Frame(
@@ -335,3 +260,121 @@ def animate_trajectory(
     fig.update_xaxes(range=create_buffered_range_df(df, 'x', 0.05), autorange=False)
     fig.update_yaxes(range=create_buffered_range_df(df, 'y', 0.05), autorange=False)
     return fig
+
+def _add_expanding_slider(fig, num_points_per_step=10):
+    """
+    Add a slider to a Plotly scatter plot.
+    
+    :param fig: Existing Plotly figure
+    :param num_points_per_step: Number of points to show per slider step
+    :return: Updated Plotly figure with a slider
+    """
+    
+    # Extract data
+    x_values = fig.data[0]['x']
+    y_values = fig.data[0]['y']
+    
+    # Create steps for the slider
+    steps = []
+    for i in range(0, len(x_values), num_points_per_step):
+        step = {
+            'args': [{
+                'x': [x_values[:i+num_points_per_step]],
+                'y': [y_values[:i+num_points_per_step]]
+            }],
+            'label': str(i+num_points_per_step),
+            'method': 'restyle'
+        }
+        steps.append(step)
+
+    # Create the slider
+    slider = {
+        'active': 0,
+        'yanchor': 'top',
+        'xanchor': 'left',
+        'currentvalue': {
+            'font': {'size': 20},
+            'prefix': 'Number of points:',
+            'visible': True,
+            'xanchor': 'right'
+        },
+        'transition': {'duration': 300, 'easing': 'cubic-in-out'},
+        'pad': {'b': 10, 't': 50},
+        'len': 0.9,
+        'x': 0.1,
+        'y': 0,
+        'steps': steps
+    }
+
+    # Add the slider to the figure
+    fig.update_layout(sliders=[slider])
+
+    return fig
+
+import plotly.graph_objs as go
+
+def _add_point_slider(fig, num_points_per_step=1, line_color=DEFAULT_LINE_COLOR, row=1, col=1):
+    """
+    Add a slider to a Plotly scatter plot to place a dot at specified points.
+    
+    :param fig: Existing Plotly figure
+    :param num_points_per_step: Number of points to step per slider position
+    :return: Updated Plotly figure with a slider
+    """
+    
+    # Extract data
+    x_values = fig.data[0]['x']
+    y_values = fig.data[0]['y']
+    
+    # Create steps for the slider
+    steps = []
+    for i in range(0, len(x_values), num_points_per_step):
+        step = {
+            'args': [{
+                'x': [[x_values[i]]],  # The x-value of the dot
+                'y': [[y_values[i]]],  # The y-value of the dot
+            }, [1]],  # Indicates we're updating the second trace (scatter dot) 
+            'label': str(i),
+            'method': 'restyle'
+        }
+        steps.append(step)
+
+    # Create the slider
+    slider = {
+        'active': 0,
+        'yanchor': 'top',
+        'xanchor': 'left',
+        'currentvalue': {
+            'font': {'size': 20},
+            'prefix': 'Point Index:',
+            'visible': True,
+            'xanchor': 'right'
+        },
+        'transition': {'duration': 300, 'easing': 'cubic-in-out'},
+        'pad': {'b': 10, 't': 50},
+        'len': 0.9,
+        'x': 0.1,
+        'y': 0,
+        'steps': steps
+    }
+
+    # Ensure the base line remains and add a scatter dot trace
+    fig.add_trace(
+        go.Scatter(
+            x=[x_values[0]],
+            y=[y_values[0]],
+            mode='markers',
+            marker=dict(
+                size=10,
+                color='black',
+                line_color=line_color,
+                line_width=2.0,
+            )
+        )
+    )
+    
+    # Add the slider to the figure
+    fig.update_layout(sliders=[slider])
+
+    return fig
+
