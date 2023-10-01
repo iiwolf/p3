@@ -196,3 +196,124 @@ def hex_to_rgb(hex_code, opacity=1.0):
     r, g, b = hex_to_rgb_plotly(hex_code)
     return f'rgba({r}, {g}, {b}, {opacity})'
 
+
+def _add_expanding_slider(fig, num_points_per_step=10):
+    """
+    Add a slider to a Plotly scatter plot.
+    
+    :param fig: Existing Plotly figure
+    :param num_points_per_step: Number of points to show per slider step
+    :return: Updated Plotly figure with a slider
+    """
+    
+    # Extract data
+    x_values = fig.data[0]['x']
+    y_values = fig.data[0]['y']
+    
+    # Create steps for the slider
+    steps = []
+    for i in range(0, len(x_values), num_points_per_step):
+        step = {
+            'args': [{
+                'x': [x_values[:i+num_points_per_step]],
+                'y': [y_values[:i+num_points_per_step]]
+            }],
+            'label': str(i+num_points_per_step),
+            'method': 'restyle'
+        }
+        steps.append(step)
+
+    # Create the slider
+    slider = {
+        'active': 0,
+        'yanchor': 'top',
+        'xanchor': 'left',
+        'currentvalue': {
+            'font': {'size': 20},
+            'prefix': 'Number of points:',
+            'visible': True,
+            'xanchor': 'right'
+        },
+        'transition': {'duration': 300, 'easing': 'cubic-in-out'},
+        'pad': {'b': 10, 't': 50},
+        'len': 0.9,
+        'x': 0.1,
+        'y': 0,
+        'steps': steps
+    }
+
+    # Add the slider to the figure
+    fig.update_layout(sliders=[slider])
+
+    return fig
+
+def _add_point_slider(fig, num_points_per_step=1, line_color=DEFAULT_LINE_COLOR, row=1, col=1):
+    """
+    Add a slider to a Plotly scatter plot to place a dot at specified points.
+    
+    :param fig: Existing Plotly figure
+    :param num_points_per_step: Number of points to step per slider position
+    :return: Updated Plotly figure with a slider
+    """
+    
+
+    # Create steps for the slider
+    steps = []
+    max_steps = max([len(fig.data[trace_index]['x']) for trace_index in range(len(fig.data))])
+    n_traces = len(fig.data)
+                            
+    # Extract data
+    x_values = fig.data[0]['x']
+    y_values = fig.data[0]['y']
+    
+    # Ensure the base line remains and add a scatter dot trace
+    fig.add_trace(
+        go.Scatter(
+            x=[x_values[0]],
+            y=[y_values[0]],
+            mode='markers',
+            marker=dict(
+                size=10,
+                color='black',
+                line_color=line_color,
+                line_width=2.0,
+            )
+        )
+    )
+    for i in range(0, max_steps, num_points_per_step):
+        
+        update_args = [{
+            f'x': [[x_values[i]]],  # The x-value of the dot
+            f'y': [[y_values[i]]],  # The y-value of the dot
+        }, [len(fig.data) - 1]]
+
+        step = {
+            'args': update_args,  # Indicates we're updating the second trace (scatter dot) 
+            'label': str(i),
+            'method': 'restyle'
+        }
+        steps.append(step)
+
+    # Create the slider
+    slider = {
+        'active': 0,
+        'yanchor': 'top',
+        'xanchor': 'left',
+        'currentvalue': {
+            'font': {'size': 20},
+            'prefix': 'Point Index:',
+            'visible': True,
+            'xanchor': 'right'
+        },
+        'transition': {'duration': 300, 'easing': 'cubic-in-out'},
+        'pad': {'b': 10, 't': 50},
+        'len': 0.9,
+        'x': 0.1,
+        'y': 0,
+        'steps': steps
+    }
+
+    # Add the slider to the figure
+    fig.update_layout(sliders=[slider])
+
+    return fig

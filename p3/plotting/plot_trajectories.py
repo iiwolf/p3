@@ -161,19 +161,19 @@ def _create_point_scatter(df, x_var, y_var, line_color):
     )
 
 def animate_trajectory(
-        df,
-        x_var,
-        y_var,
-        speeds = [1, 2, 4, 8],
-        allow_resample: bool = True,
-        resample_dt: float = 0.1,
-        n_samples: int = 100,
-        fig: go.Figure = None,
-        row=1,
-        col=1,
-        line_color: str = DEFAULT_LINE_COLOR,
-        **kwargs
-    ):
+    df,
+    x_var,
+    y_var,
+    speeds = [1, 2, 4, 8],
+    allow_resample: bool = True,
+    resample_dt: float = 0.1,
+    n_samples: int = 100,
+    fig: go.Figure = None,
+    row=1,
+    col=1,
+    line_color: str = DEFAULT_LINE_COLOR,
+    **kwargs
+):
     """
     Visualizes a trajectory from a DataFrame with x and y columns and animates it using Plotly's slider.
 
@@ -259,122 +259,5 @@ def animate_trajectory(
     )
     fig.update_xaxes(range=create_buffered_range_df(df, 'x', 0.05), autorange=False)
     fig.update_yaxes(range=create_buffered_range_df(df, 'y', 0.05), autorange=False)
-    return fig
-
-def _add_expanding_slider(fig, num_points_per_step=10):
-    """
-    Add a slider to a Plotly scatter plot.
-    
-    :param fig: Existing Plotly figure
-    :param num_points_per_step: Number of points to show per slider step
-    :return: Updated Plotly figure with a slider
-    """
-    
-    # Extract data
-    x_values = fig.data[0]['x']
-    y_values = fig.data[0]['y']
-    
-    # Create steps for the slider
-    steps = []
-    for i in range(0, len(x_values), num_points_per_step):
-        step = {
-            'args': [{
-                'x': [x_values[:i+num_points_per_step]],
-                'y': [y_values[:i+num_points_per_step]]
-            }],
-            'label': str(i+num_points_per_step),
-            'method': 'restyle'
-        }
-        steps.append(step)
-
-    # Create the slider
-    slider = {
-        'active': 0,
-        'yanchor': 'top',
-        'xanchor': 'left',
-        'currentvalue': {
-            'font': {'size': 20},
-            'prefix': 'Number of points:',
-            'visible': True,
-            'xanchor': 'right'
-        },
-        'transition': {'duration': 300, 'easing': 'cubic-in-out'},
-        'pad': {'b': 10, 't': 50},
-        'len': 0.9,
-        'x': 0.1,
-        'y': 0,
-        'steps': steps
-    }
-
-    # Add the slider to the figure
-    fig.update_layout(sliders=[slider])
-
-    return fig
-
-import plotly.graph_objs as go
-
-def _add_point_slider(fig, num_points_per_step=1, line_color=DEFAULT_LINE_COLOR, row=1, col=1):
-    """
-    Add a slider to a Plotly scatter plot to place a dot at specified points.
-    
-    :param fig: Existing Plotly figure
-    :param num_points_per_step: Number of points to step per slider position
-    :return: Updated Plotly figure with a slider
-    """
-    
-    # Extract data
-    x_values = fig.data[0]['x']
-    y_values = fig.data[0]['y']
-    
-    # Create steps for the slider
-    steps = []
-    for i in range(0, len(x_values), num_points_per_step):
-        step = {
-            'args': [{
-                'x': [[x_values[i]]],  # The x-value of the dot
-                'y': [[y_values[i]]],  # The y-value of the dot
-            }, [1]],  # Indicates we're updating the second trace (scatter dot) 
-            'label': str(i),
-            'method': 'restyle'
-        }
-        steps.append(step)
-
-    # Create the slider
-    slider = {
-        'active': 0,
-        'yanchor': 'top',
-        'xanchor': 'left',
-        'currentvalue': {
-            'font': {'size': 20},
-            'prefix': 'Point Index:',
-            'visible': True,
-            'xanchor': 'right'
-        },
-        'transition': {'duration': 300, 'easing': 'cubic-in-out'},
-        'pad': {'b': 10, 't': 50},
-        'len': 0.9,
-        'x': 0.1,
-        'y': 0,
-        'steps': steps
-    }
-
-    # Ensure the base line remains and add a scatter dot trace
-    fig.add_trace(
-        go.Scatter(
-            x=[x_values[0]],
-            y=[y_values[0]],
-            mode='markers',
-            marker=dict(
-                size=10,
-                color='black',
-                line_color=line_color,
-                line_width=2.0,
-            )
-        )
-    )
-    
-    # Add the slider to the figure
-    fig.update_layout(sliders=[slider])
-
     return fig
 
