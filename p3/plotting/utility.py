@@ -249,7 +249,15 @@ def _add_expanding_slider(fig, num_points_per_step=10):
 
 DEFAULT_LINE_COLOR = get_plotly_colors()['cyan']
 
-def _add_point_slider(fig, num_points_per_step=1, line_color=DEFAULT_LINE_COLOR, row=1, col=1):
+def _add_point_slider(
+    fig,
+    num_points_per_step=1,
+    line_color=DEFAULT_LINE_COLOR,
+    transition_time = 1000,
+    speeds=[1, 2, 4, 8],
+    row=1,
+    col=1
+):
     """
     Add a slider to a Plotly scatter plot to place a dot at specified points.
     
@@ -257,13 +265,12 @@ def _add_point_slider(fig, num_points_per_step=1, line_color=DEFAULT_LINE_COLOR,
     :param num_points_per_step: Number of points to step per slider position
     :return: Updated Plotly figure with a slider
     """
-    
 
     # Create steps for the slider
-    steps = []
     max_steps = max([len(fig.data[trace_index]['x']) for trace_index in range(len(fig.data))])
     n_traces = len(fig.data)
     rows, cols = get_subplot_rows_cols(fig)
+    steps = []
     all_x_vals = []
     all_y_vals = []
     traces = []
@@ -299,6 +306,7 @@ def _add_point_slider(fig, num_points_per_step=1, line_color=DEFAULT_LINE_COLOR,
             frame_data.append(go.Scatter(x=[x_values[i]], y=[y_values[i]], mode='markers'))
         frames.append(go.Frame(data=frame_data, name=str(i), traces=traces))
 
+
     # Create the slider (existing code)
     slider = {
         'active': 0,
@@ -310,30 +318,35 @@ def _add_point_slider(fig, num_points_per_step=1, line_color=DEFAULT_LINE_COLOR,
             'visible': True,
             'xanchor': 'right'
         },
-        'transition': {'duration': 300, 'easing': 'cubic-in-out'},
+        'transition': {'duration': 0, 'easing': 'cubic-in-out'},
         'pad': {'b': 10, 't': 50},
         'len': 0.9,
         'x': 0.1,
         'y': 0,
-        'steps': [{"args": [[f.name], {"frame": {"duration": 300, "redraw": True},
-                                      "mode": "immediate", "transition": {"duration": 300}}],
+        'steps': [{"args": [[f.name], {"frame": {"duration": 0, "redraw": True},
+                                      "mode": "immediate", "transition": {"duration": 0}}],
                    "label": f.name, "method": "animate"} for f in frames]
     }
 
     # Add play and pause buttons
     play_button = {
-        'buttons': [{
-            'args': [None, {"frame": {"duration": 300, "redraw": True},
-                            "fromcurrent": True, "transition": {"duration": 300}}],
-            'label': 'Play',
-            'method': 'animate'
-        },
-        {
-            'args': [[None], {"frame": {"duration": 0, "redraw": False},
-                              "mode": "immediate", "transition": {"duration": 0}}],
-            'label': 'Pause',
-            'method': 'animate'
-        }],
+        'buttons': [
+            {
+                'args': [None, {
+                    'frame': {'duration': transition_time / speed, 'redraw': False}, 
+                    'transition' : {'duration' : transition_time / speed, 'easing': 'linear'}, 
+                    'fromcurrent': True
+                    }],
+                'label': f'{speed}x',
+                'method': 'animate'
+            } for speed in speeds
+        ] + [
+            {
+                'args': [[None], {'frame': {'duration': 0, 'redraw': False}, 'mode': 'immediate', 'transition': {'duration': 0}}],
+                'label': 'Pause',
+                'method': 'animate'
+            }
+        ],
         'direction': 'left',
         'pad': {'r': 10, 't': 87},
         'showactive': False,
