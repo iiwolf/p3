@@ -268,17 +268,22 @@ def _add_point_slider(
 
     # Create steps for the slider
     max_steps = max([len(fig.data[trace_index]['x']) for trace_index in range(len(fig.data))])
-    n_traces = len(fig.data)
-    rows, cols = get_subplot_rows_cols(fig)
-    steps = []
+
     all_x_vals = []
     all_y_vals = []
     traces = []
-    for i, (row, col) in enumerate(zip(rows, cols)):
-            
+    offset = 0
+
+    for i, (row, col) in enumerate(fig._get_subplot_coordinates()):
+
+        # Skip empty columns meant for left corner
+        if fig.get_subplot(int(row), int(col)) == None:
+            offset+=1
+            continue
+
         # Extract data
-        x_values = fig.data[i]['x']
-        y_values = fig.data[i]['y']
+        x_values = fig.data[i-offset]['x']
+        y_values = fig.data[i-offset]['y']
         
         all_x_vals.append(x_values)
         all_y_vals.append(y_values)
@@ -303,7 +308,11 @@ def _add_point_slider(
     for i in range(0, max_steps, num_points_per_step):
         frame_data = []
         for x_values, y_values, trace_idx in zip(all_x_vals, all_y_vals, traces):
-            frame_data.append(go.Scatter(x=[x_values[i]], y=[y_values[i]], mode='markers'))
+            # _i = min(i, len(x_values) - 1, len(y_values) - 1)
+            if i < len(x_values) and i < len(y_values):
+                frame_data.append(go.Scatter(x=[x_values[i]], y=[y_values[i]], mode='markers'))
+            else:
+                frame_data.append(go.Scatter(x=[x_values[-1]], y=[y_values[-1]], mode='markers'))
         frames.append(go.Frame(data=frame_data, name=str(i), traces=traces))
 
 

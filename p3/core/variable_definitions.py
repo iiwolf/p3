@@ -51,3 +51,10 @@ FLIGHT_DASH_VARS = [
     "speed", "mach",
     "mass", "fuel_mass",  
 ]
+
+FLIGHT_DASH_VARS = [
+                    "x", "vx", "fx", "alpha",
+                    "y", "vy", "fy", "gamma",
+"stage", "mass", "mach", "ax", "drag", "cd",
+"thrust", "fuel_mass", "speed", "ay", "lift", "cl",
+]
