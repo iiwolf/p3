@@ -1,9 +1,12 @@
 # P3
-from p3.core.variable_definitions import get_display_str, get_hover_str
+from p3.core.variable_definitions import get_display_str, FLIGHT_DASH_VARS
 from p3.plotting.utility import create_subplots
 from p3.plotting.plot_trajectories import plot_on_flat_plane, plot_flight_state
 
-def plot_flight_dash(df, vars_to_plot, fig=None, row=1, col=1):
+def plot_flight_dash(df, vars_to_plot=None, fig=None, row=1, col=1):
+
+    if vars_to_plot is None:
+        vars_to_plot = FLIGHT_DASH_VARS
 
     if fig is None:
         fig, rows, cols = create_subplots(

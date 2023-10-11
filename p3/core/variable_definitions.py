@@ -37,3 +37,17 @@ variable_labels = {
     "alpha" : Variable("Alpha", "deg"),
     "gamma" : Variable("Gamma", "deg"),
 }
+
+FLIGHT_DASH_VARS = [
+    "stage", 
+    "alpha", "gamma",
+    "x", "y", 
+    "vx", "vy",
+    "ax", "ay", 
+    "fx", "fy", 
+    "drag", "lift", "thrust",
+    "cd", "cl", 
+    # "rho", @TODO: should be included I guess
+    "speed", "mach",
+    "mass", "fuel_mass",  
+]
