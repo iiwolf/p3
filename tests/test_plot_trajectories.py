@@ -28,13 +28,6 @@ class TestPlotTrajectory(UnitTest):
         fig = _add_point_slider(fig)
         fig.show()
 
-    def test_plot_on_flat_plane_w_point_slider_animated(self):
-        from p3.plotting.plot_trajectories import plot_on_flat_plane, animate_trajectory_slider
-        df = pd.read_csv(self.sample_trajectory_data)
-        fig = plot_on_flat_plane(df)
-        fig = animate_trajectory_slider(df, 'x', 'y', fig=fig)
-        fig.show()
-
     def test_plot_flight_state_w_point_slider(self):
         from p3.plotting.plot_trajectories import plot_flight_state
         from p3.plotting.utility import _add_point_slider

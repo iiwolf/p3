@@ -5,6 +5,7 @@ from plotly.subplots import make_subplots
 
 # P3
 from p3.core.utility import resample_df, create_buffered_range_df
+from p3.core.variable_definitions import get_display_str, get_hover_str
 from p3.plotting.utility import (
     create_specs,
     create_subplots,
@@ -15,8 +16,6 @@ from p3.plotting.utility import (
     get_subplot_rows_cols
 )
 
-# Simple Physics
-from simple_physics.definitions import get_display_str, get_hover_str
 
 DEFAULT_LINE_COLOR = get_plotly_colors()['cyan']
     
