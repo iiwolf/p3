@@ -306,14 +306,23 @@ def _add_point_slider(
 
     frames = []
     for i in range(0, max_steps, num_points_per_step):
+
+        # Create a list of frame date for each subplot at this timestep
         frame_data = []
-        for x_values, y_values, trace_idx in zip(all_x_vals, all_y_vals, traces):
-            # _i = min(i, len(x_values) - 1, len(y_values) - 1)
+        for x_values, y_values in zip(all_x_vals, all_y_vals):
             if i < len(x_values) and i < len(y_values):
                 frame_data.append(go.Scatter(x=[x_values[i]], y=[y_values[i]], mode='markers'))
             else:
                 frame_data.append(go.Scatter(x=[x_values[-1]], y=[y_values[-1]], mode='markers'))
-        frames.append(go.Frame(data=frame_data, name=str(i), traces=traces))
+
+        # Create frame for all the data above
+        frames.append(
+            go.Frame(
+                data=frame_data,
+                name=f"{x_values[i]:0.2f}s",
+                traces=traces
+            )
+        )
 
 
     # Create the slider (existing code)
@@ -323,7 +332,7 @@ def _add_point_slider(
         'xanchor': 'left',
         'currentvalue': {
             'font': {'size': 20},
-            'prefix': 'Point Index:',
+            'prefix': 't = ',
             'visible': True,
             'xanchor': 'right'
         },

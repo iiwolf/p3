@@ -58,6 +58,7 @@ def _plot_on_flat_plane(
         showspikes=True,
         spikethickness=1,
         spikecolor=hex_to_rgb(line_color, opacity=0.5),
+        range=create_buffered_range_df(df, 'x', 0.05), 
         row=row,
         col=col,
     )
@@ -67,6 +68,7 @@ def _plot_on_flat_plane(
         showspikes=True,
         spikethickness=1,
         spikecolor=hex_to_rgb(line_color, opacity=0.5),
+        range=create_buffered_range_df(df, 'y', 0.05), 
         row=row,
         col=col,
     )
@@ -111,7 +113,9 @@ def _plot_flight_state(
         rows, cols = get_subplot_rows_cols(fig)
 
     colors = [line_color] * len(vars_to_plot)
-                        
+
+    x_range = create_buffered_range_df(df, 't', 0.05)
+
     # Add traces for all variables
     for i, attr in enumerate(vars_to_plot):
         fig.add_trace(
@@ -132,7 +136,10 @@ def _plot_flight_state(
             showspikes=True,
             spikethickness=1,
             spikecolor=hex_to_rgb(colors[i], opacity=0.5),
+            range=x_range,
+            autorange=False
         )
+
         fig.update_yaxes(
             tickfont_size=10,
             row=rows[i],
@@ -140,6 +147,8 @@ def _plot_flight_state(
             showspikes=True,
             spikethickness=1,
             spikecolor=hex_to_rgb(colors[i], opacity=0.5),
+            range=create_buffered_range_df(df, attr, 0.05), 
+            autorange=False
         )
 
     fig.update_layout(showlegend=False, template='plotly_dark')
